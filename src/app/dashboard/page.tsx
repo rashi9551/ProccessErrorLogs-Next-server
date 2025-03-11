@@ -1,4 +1,32 @@
+'use client';
+import { userLogout } from "@/redux/slices/authSlice";
+import { RootState } from "@/redux/store";
+import { signOut } from "@/utils/action";
+import { useRouter } from 'next/navigation';
+import { useLayoutEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import {toast} from 'sonner' ;
+
 export default function Dashboard() {
+    
+    const dispatch = useDispatch();
+    const router = useRouter();
+
+    const isLoggedIn = useSelector((state: RootState) => state.auth.loggedIn);
+
+    useLayoutEffect(() => {
+          if (!isLoggedIn) {
+            router.push('/login');
+          }
+    }, [isLoggedIn, router]);
+
+    const handleLogout = async () => {
+        await signOut()
+        dispatch(userLogout());
+        toast.success('Log out successfully')
+        router.push("/login"); // Redirect to login page
+    };
+    
     return (
       <div className="min-h-screen bg-gray-100 p-6">
         <div className="max-w-4xl mx-auto bg-white shadow-md rounded-lg p-6">
@@ -16,7 +44,10 @@ export default function Dashboard() {
             </div>
           </div>
   
-          <button className="mt-6 bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600">
+          <button        
+             onClick={handleLogout}
+             className="mt-6 bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600"
+           >
             Logout
           </button>
         </div>

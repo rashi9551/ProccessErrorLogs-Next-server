@@ -1,10 +1,9 @@
 'use server'
-
 import { createClientForServer } from '@/utils/supabase/server'
 import { Provider } from '@supabase/supabase-js'
-import { redirect } from 'next/navigation'
 
-const signInWith = (provider:Provider) => async () => {
+
+const signInWith = (provider:Provider) => async (): Promise<{ success: string | null | boolean; error: string | {} ,email?:string}> => {
   const supabase = await createClientForServer()
 
   const auth_callback_url = `${process.env.SITE_URL}/auth/callback`
@@ -18,10 +17,17 @@ const signInWith = (provider:Provider) => async () => {
 
   if (error) {
     console.log(error)
+    return { success: null, error: { message: 'OAuth sign-in failed' } };
   }
 
   if (data?.url) {
-    redirect(data.url);
+    const { data: user, error: userError } = await supabase.auth.getUser();
+    if(user.user?.email){
+      return { success: true,email:user?.user?.email ,error: { message: "successfully logged in" } };
+    }else{
+      console.log(userError);
+    }
+    return { success: true, error: { message: "successfully logged in" } };
   } else {
     return { success: null, error: { message: "No redirect URL found" } };
   }}
@@ -36,7 +42,7 @@ const signOut = async () => {
 const signupWithEmailPassword = async (
   prev: any,
   formData: FormData
-): Promise<{ success: string | null; error: string | null }> => {
+): Promise<{ success: string | null | boolean; error: string | null ,message?:string}> => {
   const supabase = await createClientForServer();
 
   const { data, error } = await supabase.auth.signUp({
@@ -56,7 +62,8 @@ const signupWithEmailPassword = async (
   }
 
   return {
-    success: 'Please check your email to confirm your account.',
+    success:true,
+    message: 'Please check your email to confirm your account.',
     error: null,
   };
 };
