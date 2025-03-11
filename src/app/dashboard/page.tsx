@@ -1,9 +1,10 @@
 'use client';
-import { userLogout } from "@/redux/slices/authSlice";
-import { RootState } from "@/redux/store";
-import { signOut } from "@/utils/action";
+import { userLogin, userLogout } from "@/utils/redux/slices/authSlice";
+import { RootState } from "@/utils/redux/store";
+import { signOut } from "@/utils/supabase/action";
+import createClientForBrowser from "@/utils/supabase/client";
 import { useRouter } from 'next/navigation';
-import { useLayoutEffect } from "react";
+import { useEffect, useLayoutEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {toast} from 'sonner' ;
 
@@ -13,12 +14,27 @@ export default function Dashboard() {
     const router = useRouter();
 
     const isLoggedIn = useSelector((state: RootState) => state.auth.loggedIn);
+    
+    useEffect(() => {
+      const checkUserSession = async () => {
+        const supabase = createClientForBrowser();
+        const { data: user, error } = await supabase.auth.getUser();
+  
+        if (user?.user?.email) {
+          dispatch(userLogin({ email: user.user.email, loggedIn: true }));
+        }
+        else if(isLoggedIn){
+          router.push('/dashboard')
+        }
+         else {
+          console.log(error);
+          toast.error("Session expired, please login again");
+          router.replace("/login"); // Redirect if not authenticated
+        }
+      };
+      checkUserSession();
+    }, [dispatch, router]);
 
-    useLayoutEffect(() => {
-          if (!isLoggedIn) {
-            router.push('/login');
-          }
-    }, [isLoggedIn, router]);
 
     const handleLogout = async () => {
         await signOut()

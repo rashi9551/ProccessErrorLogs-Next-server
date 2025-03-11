@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSelector } from "react-redux";
-import { RootState } from "@/redux/store";
+import { RootState } from "@/utils/redux/store";
 import Loader from "@/components/shimmer/Loader"; // Import your Loader component
 
 export default function Home() {

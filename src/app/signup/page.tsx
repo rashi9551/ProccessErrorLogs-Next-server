@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { signupWithEmailPassword } from '@/utils/action';
+import { signupWithEmailPassword } from '@/utils/supabase/action';
 import { useDispatch, useSelector } from 'react-redux';
-import { RootState } from '@/redux/store';
-import { userLogin } from '@/redux/slices/authSlice';
+import { RootState } from '@/utils/redux/store';
+import { userLogin } from '@/utils/redux/slices/authSlice';
 import {toast} from 'sonner' ;
 
 export default function Signup() {
@@ -43,8 +43,8 @@ export default function Signup() {
       setLoading(false);
     } else {
       dispatch(userLogin({ email, loggedIn: true }));
-      toast.success('User successfully created')
       toast.success('Login Successfull')
+      toast.success('User successfully created')
       if(success){
           toast.info(message)
       }

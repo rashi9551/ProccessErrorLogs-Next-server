@@ -2,10 +2,10 @@
 
 import { useEffect, useLayoutEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { signinWithEmailPassword, signinWithGithub } from '@/utils/action';
+import { signinWithEmailPassword, signinWithGithub } from '@/utils/supabase/action';
 import { useDispatch, useSelector } from 'react-redux';
-import { RootState } from '@/redux/store';
-import { userLogin } from '@/redux/slices/authSlice';
+import { RootState } from '@/utils/redux/store';
+import { userLogin } from '@/utils/redux/slices/authSlice';
 import {toast} from 'sonner' ;
 
 export default function Login() {
@@ -14,7 +14,6 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>('');
   
-  const dispatch = useDispatch();
   const router = useRouter();
 
   const isLoggedIn = useSelector((state: RootState) => state.auth.loggedIn);
@@ -41,21 +40,20 @@ export default function Login() {
         toast.error(error)
         setLoading(false);
     } else {
-        dispatch(userLogin({ email, loggedIn: true }));
         toast.success('Login Successfull')
         router.push('/dashboard');
         router.refresh();
     }
   };
 
-  const handleGithubLogin = async()=>{
-    const data = await signinWithGithub()
-    if(data.success){
-        dispatch(userLogin({ email:data?.email as string ?? "", loggedIn: true }));
-        toast.success('Login Successfull')
-        router.push('/dashboard')
-    }
-  }
+//   const handleGithubLogin = async()=>{
+//     const data = await signinWithGithub()
+//     if(data.success){
+//         dispatch(userLogin({ email:data?.email as string ?? "", loggedIn: true }));
+//         toast.success('Login Successfull')
+//         router.push('/dashboard')
+//     }
+//   }
 
   return (
     <div className="flex min-h-screen bg-gradient-to-r from-blue-50 to-blue-100 justify-center items-center p-6">
@@ -117,7 +115,7 @@ export default function Login() {
             {/* GitHub Login */}
             <div className="mt-6">
             <button
-                onClick={handleGithubLogin}
+                onClick={signinWithGithub}
                 className="w-full flex items-center justify-center px-4 py-3 border border-gray-300 rounded-lg shadow-md bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 transition duration-300 ease-in-out"
             >
                 <svg className="h-5 w-5 mr-2" fill="currentColor" viewBox="0 0 20 20">

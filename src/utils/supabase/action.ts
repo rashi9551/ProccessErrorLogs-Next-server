@@ -1,6 +1,7 @@
 'use server'
 import { createClientForServer } from '@/utils/supabase/server'
 import { Provider } from '@supabase/supabase-js'
+import { redirect } from 'next/navigation';
 
 
 const signInWith = (provider:Provider) => async (): Promise<{ success: string | null | boolean; error: string | {} ,email?:string}> => {
@@ -21,13 +22,14 @@ const signInWith = (provider:Provider) => async (): Promise<{ success: string | 
   }
 
   if (data?.url) {
-    const { data: user, error: userError } = await supabase.auth.getUser();
-    if(user.user?.email){
-      return { success: true,email:user?.user?.email ,error: { message: "successfully logged in" } };
-    }else{
-      console.log(userError);
-    }
-    return { success: true, error: { message: "successfully logged in" } };
+    redirect(data?.url)
+    // const { data: user, error: userError } = await supabase.auth.getUser();
+    // if(user.user?.email){
+    //   return { success: true,email:user?.user?.email ,error: { message: "successfully logged in" } };
+    // }else{
+    //   console.log(userError);
+    // }
+    // return { success: true, error: { message: "successfully logged in" } };
   } else {
     return { success: null, error: { message: "No redirect URL found" } };
   }}
