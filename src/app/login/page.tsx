@@ -2,7 +2,7 @@
 
 import { useEffect, useLayoutEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { signinWithEmailPassword, signinWithGithub } from '@/utils/supabase/action';
+import { signinWithEmailPassword, signinWithGithub } from '@/action';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '@/utils/redux/store';
 import { userLogin } from '@/utils/redux/slices/authSlice';
