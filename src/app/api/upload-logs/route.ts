@@ -1,8 +1,13 @@
-import { createClientForServer } from "@/utils/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
+import { Buffer } from "buffer";
+import { createClientForServer } from "@/utils/supabase/server";
+import { getLogProcessingQueue } from "@/lib/queue";
+
+
 
 export async function POST(req: NextRequest) {
   try {
+    const logProcessingQueue= getLogProcessingQueue()
     const supabase = await createClientForServer();
     
     // Authentication check
@@ -24,7 +29,7 @@ export async function POST(req: NextRequest) {
 
     // Supabase storage upload
     const storagePath = `user-uploads/${user.id}/${Date.now()}-${file.name}`;
-    console.log(storagePath);
+    console.log(`Uploading file to: ${storagePath}`);
     
     const { data: storageData, error: storageError } = await supabase.storage
       .from("log-files")
@@ -37,8 +42,35 @@ export async function POST(req: NextRequest) {
       throw new Error(`Storage upload failed: ${storageError.message}`);
     }
 
+    // Get a URL for the uploaded file
+    const { data: urlData } = await supabase.storage
+      .from("log-files")
+      .createSignedUrl(storagePath, 60 * 60); // 1 hour expiry
+
+    const fileUrl = urlData?.signedUrl;
+    
+    if (!fileUrl) {
+      throw new Error("Failed to get signed URL for uploaded file");
+    }
+
+    // Add job to BullMQ queue
+    const job = await logProcessingQueue.add("process-log-file", {
+      fileUrl,
+      storagePath,
+      bucketName: "log-files",
+      originalFilename: file.name,
+      userId: user.id,
+      email: user.email
+    });
+
+    console.log(`Added job ${job.id} to queue for processing ${file.name}`);
+
     return NextResponse.json(
-      { message: "File uploaded successfully", filePath: storageData.path },
+      { 
+        message: "File uploaded and queued for processing", 
+        filePath: storageData.path,
+        jobId: job.id
+      },
       { status: 200 }
     );
 
