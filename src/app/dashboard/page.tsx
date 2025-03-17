@@ -6,14 +6,15 @@ import { RootState } from "@/utils/redux/store";
 import { signOut } from "@/action";
 import createClientForBrowser from "@/utils/supabase/client";
 import { useRouter } from 'next/navigation';
-import { useEffect, useState, ChangeEvent } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from 'sonner';
-import { JobStatus, QueueStatus, Stats } from "@/interfaces/interface";
+import { JobStatus, Stats } from "@/interfaces/interface";
 import RecentJobs from "@/components/dashboard/ReacentJob";
 import StatsPanel from "@/components/dashboard/StatusPanel";
 import JobDetailsTable from "@/components/dashboard/JobDetails";
 import FileUploadComponent from "@/components/dashboard/FileUpload";
+import QueueDetailsComponent from "@/components/dashboard/QueueDetails";
 
 export default function Dashboard() {
   const dispatch = useDispatch();
@@ -28,7 +29,30 @@ export default function Dashboard() {
     keywords: { total: 0, matches: [] }, 
     levels:{total:0,details:[]}
   });
-  const [queueStatus, setQueueStatus] = useState<QueueStatus>({ waiting: 0, active: 0, completed: 0, failed: 0 });
+  const [queueStats, setQueueStats] = useState<{
+    counts: {
+      waiting: number;
+      active: number;
+      completed: number;
+      failed: number;
+      delayed: number;
+    };
+    priorityJobs: any[];
+    recentJobs: any[];
+  }>({
+    counts: {
+      waiting: 0,
+      active: 0,
+      completed: 0,
+      failed: 0,
+      delayed: 0
+    },
+    priorityJobs: [],
+    recentJobs: []
+  });
+
+  const [isLoadingQueue, setIsLoadingQueue] = useState<boolean>(false);
+
   const [recentJobs, setRecentJobs] = useState<JobStatus[]>(() => []);
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -61,6 +85,7 @@ export default function Dashboard() {
     } else {
       fetchDashboardData();
       fetchStats();
+      fetchQueueStats(); // Add this line
       setIsLoading(false);
     }
   }, [dispatch, router, isLoggedIn,selectedJobId]);
@@ -74,24 +99,6 @@ export default function Dashboard() {
         .from('job_status')
         .select('status, count')
         .select('status, count(*)')
-
-      if (!queueError && queueData) {
-        const newQueueStatus = {
-          waiting: 0,
-          active: 0,
-          completed: 0,
-          failed: 0
-        };
-        
-        queueData.forEach((item:any) => {
-          if (item.status === 'PENDING') newQueueStatus.waiting = item.count;
-          if (item.status === 'PROCESSING') newQueueStatus.active = item.count;
-          if (item.status === 'COMPLETED') newQueueStatus.completed = item.count;
-          if (item.status === 'FAILED') newQueueStatus.failed = item.count;
-        });
-        
-        setQueueStatus(newQueueStatus);
-      }
 
       // Fetch recent jobs
       const { data: jobs, error: jobsError } = await supabase
@@ -155,6 +162,32 @@ export default function Dashboard() {
     }
   };
 
+  const fetchQueueStats = async () => {
+    setIsLoadingQueue(true);
+    try {
+      const response = await fetch('/api/queue-stats');
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to fetch queue statistics');
+      }
+  
+      const data = await response.json();
+      setQueueStats(data);
+    } catch (error:any) {
+      console.error('Error fetching queue statistics:', error);
+      toast.error(error.message || 'Failed to load queue statistics');
+      // Set default/fallback queue stats
+      setQueueStats({
+        counts: { waiting: 0, active: 0, completed: 0, failed: 0, delayed: 0 },
+        priorityJobs: [],
+        recentJobs: []
+      });
+    } finally {
+      setIsLoadingQueue(false);
+    }
+  };
+
   const handleFileChange = (selectedFile: File | null) => {
     setFile(selectedFile);
   };
@@ -203,17 +236,15 @@ export default function Dashboard() {
       toast.success(`File uploaded. Job ID: ${jobId}`);
       
       // Update queue status
-      setQueueStatus(prev => ({
-        ...prev,
-        waiting: prev.waiting + 1,
-      }));
   
       setFile(null);
       
       // Refresh dashboard data after upload
       setTimeout(() => {
         fetchDashboardData();
-      }, 1000);
+        fetchStats()
+        fetchQueueStats(); // Add this line
+      }, 5000);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       toast.error(errorMessage);
@@ -287,27 +318,11 @@ export default function Dashboard() {
               // Overview (Queue Status and Recent Jobs)
               <>
                 {/* Queue Status */}
-                <div className="bg-white p-4 rounded-lg shadow-md mt-6">
-                  <h2 className="text-lg font-semibold mb-4">Queue Status</h2>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                    <div className="bg-blue-100 p-3 rounded-lg">
-                      <div className="text-sm text-blue-800">Waiting</div>
-                      <div className="text-xl font-semibold">{queueStatus.waiting}</div>
-                    </div>
-                    <div className="bg-yellow-100 p-3 rounded-lg">
-                      <div className="text-sm text-yellow-800">Active</div>
-                      <div className="text-xl font-semibold">{queueStatus.active}</div>
-                    </div>
-                    <div className="bg-green-100 p-3 rounded-lg">
-                      <div className="text-sm text-green-800">Completed</div>
-                      <div className="text-xl font-semibold">{queueStatus.completed}</div>
-                    </div>
-                    <div className="bg-red-100 p-3 rounded-lg">
-                      <div className="text-sm text-red-800">Failed</div>
-                      <div className="text-xl font-semibold">{queueStatus.failed}</div>
-                    </div>
-                  </div>
-                </div>
+                <QueueDetailsComponent 
+                  queueStats={queueStats}
+                  isLoading={isLoadingQueue}
+                  onRefresh={fetchQueueStats}
+                />
                 
                 {/* Recent Jobs */}
                 <RecentJobs 

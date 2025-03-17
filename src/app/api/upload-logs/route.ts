@@ -1,14 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Buffer } from "buffer";
 import { createClientForServer } from "@/utils/supabase/server";
-import { getLogProcessingQueue } from "@/lib/queue";
-import calculatePriority from "@/utils/calculatePriority";
-
-
+import { getLogProcessingQueue, calculatePriority } from "@/lib/queue";
 
 export async function POST(req: NextRequest) {
   try {
-    const logProcessingQueue= getLogProcessingQueue()
+    // Use the existing queue instance with all configurations
+    const logProcessingQueue = getLogProcessingQueue();
     const supabase = await createClientForServer();
     
     // Authentication check
@@ -54,7 +52,8 @@ export async function POST(req: NextRequest) {
       throw new Error("Failed to get signed URL for uploaded file");
     }
 
-    // Add job to BullMQ queue
+    // Add job to BullMQ queue - use only the priority from calculatePriority
+    // All other job options will be inherited from the queue's defaultJobOptions
     const job = await logProcessingQueue.add(
       "process-log-file", 
       {
@@ -64,20 +63,16 @@ export async function POST(req: NextRequest) {
         originalFilename: file.name,
         userId: user.id,
         email: user.email,
-        fileSize: file.size // Add file size to use for priority
+        fileSize: file.size
       },
       {
-        priority: calculatePriority(file.size), // Lower size = higher priority
-        attempts: 3, // Set retry limit to 3
-        backoff: {
-          type: 'exponential',
-          delay: 5000 // Start with 5s delay, then exponential backoff
-        }
+        priority: calculatePriority(file.size),
+        // delay: 60000 // Delay in milliseconds (1 minute = 60000ms)
       }
     );
 
     console.log(`Added job ${job.id} to queue for processing ${file.name}`);
-    // logProcessingQueue.drain() to delete all jobs 
+
     return NextResponse.json(
       { 
         message: "File uploaded and queued for processing", 

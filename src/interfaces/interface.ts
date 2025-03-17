@@ -9,14 +9,36 @@ export interface JobStatus {
   updated_at: string;
   error_message?: string;
 }
-
-export interface QueueStatus {
-  waiting: number;
-  active: number;
-  completed: number;
-  failed: number;
+export interface QueueJob {
+  id: string;
+  name: string;
+  priority: number;
+  state?: string;
+  data: {
+    fileName: string;
+    fileSize: number;
+    userId: string;
+  };
+  timestamp?: number;
 }
 
+export interface QueueStats {
+  counts: {
+    waiting: number;
+    active: number;
+    completed: number;
+    failed: number;
+    delayed: number;
+  };
+  priorityJobs: QueueJob[];
+  recentJobs: QueueJob[];
+}
+
+export interface QueueDetailsProps {
+  queueStats: QueueStats;
+  isLoading: boolean;
+  onRefresh: () => void;
+}
 export interface ErrorDetail {
   type: string;
   count: number;
