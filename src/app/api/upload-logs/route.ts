@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { Buffer } from "buffer";
 import { createClientForServer } from "@/utils/supabase/server";
 import { getLogProcessingQueue } from "@/lib/queue";
+import calculatePriority from "@/utils/calculatePriority";
 
 
 
@@ -54,17 +55,29 @@ export async function POST(req: NextRequest) {
     }
 
     // Add job to BullMQ queue
-    const job = await logProcessingQueue.add("process-log-file", {
-      fileUrl,
-      storagePath,
-      bucketName: "log-files",
-      originalFilename: file.name,
-      userId: user.id,
-      email: user.email
-    });
+    const job = await logProcessingQueue.add(
+      "process-log-file", 
+      {
+        fileUrl,
+        storagePath,
+        bucketName: "log-files",
+        originalFilename: file.name,
+        userId: user.id,
+        email: user.email,
+        fileSize: file.size // Add file size to use for priority
+      },
+      {
+        priority: calculatePriority(file.size), // Lower size = higher priority
+        attempts: 3, // Set retry limit to 3
+        backoff: {
+          type: 'exponential',
+          delay: 5000 // Start with 5s delay, then exponential backoff
+        }
+      }
+    );
 
     console.log(`Added job ${job.id} to queue for processing ${file.name}`);
-
+    // logProcessingQueue.drain() to delete all jobs 
     return NextResponse.json(
       { 
         message: "File uploaded and queued for processing", 
