@@ -14,7 +14,7 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
   isLoading, 
   onRefresh 
 }) => {
-    console.log(stats);
+    // console.log(stats);
     
   return (
     <div className="bg-white p-4 rounded-lg shadow-md">

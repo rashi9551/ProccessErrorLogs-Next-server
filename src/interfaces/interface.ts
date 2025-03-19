@@ -86,3 +86,16 @@ export interface JobDetailsTableProps {
   selectedJobId: string | null;
   onBackClick: () => void;
 }
+
+
+export interface QueueState{
+  counts: {
+    waiting: number;
+    active: number;
+    completed: number;
+    failed: number;
+    delayed: number;
+  };
+  priorityJobs: any[];
+  recentJobs: any[];
+}

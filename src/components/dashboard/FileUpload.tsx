@@ -1,27 +1,39 @@
-import React, { useState, ChangeEvent, DragEvent } from 'react';
-import { Upload, X } from 'lucide-react';
+import React, { useState, ChangeEvent, DragEvent, useRef } from "react";
+import { Upload, X } from "lucide-react";
 
 interface FileUploadComponentProps {
   onFileChange: (file: File | null) => void;
   onUpload: () => void;
   isUploading: boolean;
   acceptedFileTypes?: string[];
+  currentFile: File | null; // Add this prop
 }
 
 const FileUploadComponent: React.FC<FileUploadComponentProps> = ({
   onFileChange,
   onUpload,
   isUploading,
-  acceptedFileTypes = ['.log', '.txt']
+  acceptedFileTypes = [".log", ".txt"],
+  currentFile, // Get the file state from parent
 }) => {
-  const [file, setFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState<boolean>(false);
+
+  // Use the file from props instead of local state
+  const file = currentFile;
 
   // This handles the input change event and calls the parent's onFileChange with the file
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0] || null;
-    setFile(selectedFile);
     onFileChange(selectedFile);
+  };
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Add this function
+  const resetFileInput = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
   };
 
   const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
@@ -37,20 +49,18 @@ const FileUploadComponent: React.FC<FileUploadComponentProps> = ({
   const handleDrop = (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     setIsDragging(false);
-    
+
     const droppedFile = e.dataTransfer.files[0] || null;
     if (droppedFile && isAcceptedFileType(droppedFile.name)) {
-      setFile(droppedFile);
       onFileChange(droppedFile);
     }
   };
 
   const isAcceptedFileType = (fileName: string): boolean => {
-    return acceptedFileTypes.some(type => fileName.endsWith(type));
+    return acceptedFileTypes.some((type) => fileName.endsWith(type));
   };
 
   const clearFile = (): void => {
-    setFile(null);
     onFileChange(null);
   };
 
@@ -61,28 +71,32 @@ const FileUploadComponent: React.FC<FileUploadComponentProps> = ({
   return (
     <div className="bg-white p-6 rounded-lg shadow-md">
       <h2 className="text-lg text-black font-semibold mb-4">Upload Log File</h2>
-      
+
       {/* Drag and drop area */}
       <div
         className={`border-2 border-dashed rounded-lg p-8 mb-4 transition-all flex flex-col items-center justify-center cursor-pointer ${
-          isDragging ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-blue-400'
+          isDragging
+            ? "border-blue-500 bg-blue-50"
+            : "border-gray-300 hover:border-blue-400"
         }`}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
-        onClick={() => document.getElementById('fileInput')?.click()}
+        onClick={() => document.getElementById("fileInput")?.click()}
       >
         <Upload className="w-12 h-12 text-blue-500 mb-3" />
         <p className="text-gray-600 text-center">
-          Drag and drop your log file here or <span className="text-blue-600 font-medium">browse</span>
+          Drag and drop your log file here or{" "}
+          <span className="text-blue-600 font-medium">browse</span>
         </p>
         <p className="text-gray-400 text-sm mt-1">
-          Supports {acceptedFileTypes.join(', ')} files
+          Supports {acceptedFileTypes.join(", ")} files
         </p>
         <input
           id="fileInput"
+          ref={fileInputRef}
           type="file"
-          accept={acceptedFileTypes.join(',')}
+          accept={acceptedFileTypes.join(",")}
           onChange={handleFileChange}
           className="hidden"
         />
@@ -110,11 +124,11 @@ const FileUploadComponent: React.FC<FileUploadComponentProps> = ({
               onClick={onUpload}
               disabled={isUploading}
               className={`px-4 py-2 rounded-lg text-white ${
-                isUploading ? 'bg-blue-300' : 'bg-blue-600 hover:bg-blue-700'
+                isUploading ? "bg-blue-300" : "bg-blue-600 hover:bg-blue-700"
               } transition-colors`}
               type="button"
             >
-              {isUploading ? 'Uploading...' : 'Upload File'}
+              {isUploading ? "Uploading..." : "Upload File"}
             </button>
           </div>
         </div>

@@ -4,7 +4,7 @@ import { Provider } from '@supabase/supabase-js'
 import { redirect } from 'next/navigation';
 
 
-const signInWith = (provider:Provider) => async (): Promise<{ success: string | null | boolean; error: string | {} ,email?:string}> => {
+const signInWith = (provider:Provider) => async (): Promise<{ success: string | null | boolean; error: string | Object ,email?:string}> => {
   const supabase = await createClientForServer()
 
   const auth_callback_url = `${process.env.SITE_URL}/auth/callback`

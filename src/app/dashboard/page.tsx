@@ -9,12 +9,15 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from 'sonner';
-import { JobStatus, Stats } from "@/interfaces/interface";
+import { JobStatus, QueueState, Stats } from "@/interfaces/interface";
 import RecentJobs from "@/components/dashboard/ReacentJob";
 import StatsPanel from "@/components/dashboard/StatusPanel";
 import JobDetailsTable from "@/components/dashboard/JobDetails";
 import FileUploadComponent from "@/components/dashboard/FileUpload";
 import QueueDetailsComponent from "@/components/dashboard/QueueDetails";
+import { io, Socket } from 'socket.io-client';
+import ConsoleComponent from "@/components/dashboard/Console";
+import { initialValueQueueStats } from "@/utils/constant";
 
 export default function Dashboard() {
   const dispatch = useDispatch();
@@ -29,27 +32,7 @@ export default function Dashboard() {
     keywords: { total: 0, matches: [] }, 
     levels:{total:0,details:[]}
   });
-  const [queueStats, setQueueStats] = useState<{
-    counts: {
-      waiting: number;
-      active: number;
-      completed: number;
-      failed: number;
-      delayed: number;
-    };
-    priorityJobs: any[];
-    recentJobs: any[];
-  }>({
-    counts: {
-      waiting: 0,
-      active: 0,
-      completed: 0,
-      failed: 0,
-      delayed: 0
-    },
-    priorityJobs: [],
-    recentJobs: []
-  });
+  const [queueStats, setQueueStats] = useState<QueueState>(initialValueQueueStats);
 
   const [isLoadingQueue, setIsLoadingQueue] = useState<boolean>(false);
 
@@ -61,6 +44,35 @@ export default function Dashboard() {
   const [isLoadingStats, setIsLoadingStats] = useState<boolean>(false);
 
   const supabase = createClientForBrowser();
+
+  const [socketConnection, setSocketConnection] = useState<Socket | null>(null);
+  
+  useEffect(() => {
+    // Establish WebSocket connection using socket.io-client
+    const socket = io('http://localhost:3001', {
+      transports: ['websocket'], // Force WebSocket transport
+    });
+
+    socket.on('connect', () => {
+      console.log('WebSocket connection established');
+      setSocketConnection(socket); // Store the socket connection
+    });
+
+    socket.on('disconnect', () => {
+      console.log('WebSocket connection closed');
+      setSocketConnection(null);
+    });
+
+    socket.on('error', (error) => {
+      console.error('WebSocket error:', error);
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, []);
+
+
   
   // Check user session
   useEffect(() => {
@@ -151,7 +163,7 @@ export default function Dashboard() {
       }
   
       const data = await response.json();
-      console.log(data,"delected jobid ",selectedJobId);
+      // console.log(data,"delected jobid ",selectedJobId);
       
       setStats(data);
     } catch (error) {
@@ -190,6 +202,8 @@ export default function Dashboard() {
 
   const handleFileChange = (selectedFile: File | null) => {
     setFile(selectedFile);
+    console.log(file);
+    
   };
 
   const handleUpload = async () => {
@@ -209,7 +223,7 @@ export default function Dashboard() {
       const token = session?.access_token;
   
       if (!token) {
-        toast.error("Authentication required. Please login.")
+        toast.error("Authentication required.  Please login.")
         router.refresh()
         return;
       }
@@ -225,7 +239,6 @@ export default function Dashboard() {
       if (!response.ok) {
         throw new Error("Upload failed");
       }
-  
       const data = await response.json();
       const jobId = data?.jobId;
       
@@ -235,15 +248,12 @@ export default function Dashboard() {
       
       toast.success(`File uploaded. Job ID: ${jobId}`);
       
-      // Update queue status
-  
-      setFile(null);
       
       // Refresh dashboard data after upload
       setTimeout(() => {
         fetchDashboardData();
-        fetchStats()
-        fetchQueueStats(); // Add this line
+        fetchStats();
+        fetchQueueStats();
       }, 5000);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
@@ -304,7 +314,12 @@ export default function Dashboard() {
               onFileChange={handleFileChange}
               onUpload={handleUpload}
               isUploading={isUploading}
+              currentFile={file} // Pass the file state to the component
             />
+
+
+            {/* Add the Console Component here */}
+            <ConsoleComponent socketConnection={socketConnection} />
             
             {selectedJobId ? (
               // Job Details View
