@@ -18,13 +18,14 @@ import QueueDetailsComponent from "@/components/dashboard/QueueDetails";
 import { io, Socket } from 'socket.io-client';
 import ConsoleComponent from "@/components/dashboard/Console";
 import { initialValueQueueStats } from "@/utils/constant";
+import { shallowEqual } from 'react-redux';
 
 export default function Dashboard() {
   const dispatch = useDispatch();
   const router = useRouter();
-  const isLoggedIn = useSelector((state: RootState) => state.auth.loggedIn);
-  const userEmail = useSelector((state: RootState) => state.auth.email);
-  
+
+  const isLoggedIn = useSelector((state: RootState) => state.auth.loggedIn, shallowEqual);
+  const userEmail = useSelector((state: RootState) => state.auth.email, shallowEqual);
   // State for the dashboard
   const [stats, setStats] = useState<Stats>({ 
     errors: { total: 0, details: [] }, 
@@ -317,9 +318,6 @@ export default function Dashboard() {
               currentFile={file} // Pass the file state to the component
             />
 
-
-            {/* Add the Console Component here */}
-            <ConsoleComponent socketConnection={socketConnection} />
             
             {selectedJobId ? (
               // Job Details View
@@ -360,6 +358,10 @@ export default function Dashboard() {
           </div>
         </div>
       </main>
+
+      {/* Add the Console Component here */}
+      <ConsoleComponent socketConnection={socketConnection} />
+
     </div>
   );
 }
