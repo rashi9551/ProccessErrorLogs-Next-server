@@ -1,18 +1,10 @@
 'use client';
 
+import { ConsoleComponentProps, ConsoleMessage } from '@/interfaces/interface';
 import React, { useEffect, useRef, useState } from 'react';
 import { Socket } from 'socket.io-client';
 
-interface ConsoleMessage {
-  id: number;
-  timestamp: string;
-  message: string;
-  type: 'error' | 'warning' | 'success' | 'info';
-}
 
-interface ConsoleComponentProps {
-  socketConnection: Socket | null;
-}
 
 type ConsolePosition = 'floating' | 'hidden';
 

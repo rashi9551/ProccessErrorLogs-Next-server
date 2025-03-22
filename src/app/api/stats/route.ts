@@ -2,9 +2,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClientForServer } from "@/utils/supabase/server";
 import { ALL_LOG_LEVELS } from '@/utils/constant';
+import { rateLimitMiddleware } from '@/utils/middleware/rateLimitterMiddleware';
 
 
-export async function GET(req: NextRequest) {
+async function handler(req: NextRequest) {
   try {
     // Get the job_id from query params if provided
     const url = new URL(req.url);
@@ -26,7 +27,6 @@ export async function GET(req: NextRequest) {
     
     if (jobId) {
       // First fetch the job to ensure it belongs to this user
-      console.log(jobId,"it from individual job stats")
       const { data: jobData, error: jobError } = await supabase
         .from('job_status')
         .select('job_id')
@@ -112,6 +112,9 @@ export async function GET(req: NextRequest) {
     );
   }
 }
+
+export const GET = rateLimitMiddleware(handler);
+
 
 // Helper function to process a single job's stats
 function processJobStats(jobStats: any) {
@@ -308,3 +311,5 @@ function processAggregatedStats(logStats: any[]) {
     }
   };
 }
+
+

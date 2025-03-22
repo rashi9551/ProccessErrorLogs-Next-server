@@ -39,3 +39,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+
+# Jest cache and coverage
+coverage/
+jest-cache/
+jest/

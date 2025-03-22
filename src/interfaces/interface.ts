@@ -1,3 +1,4 @@
+import { Socket } from "socket.io-client";
 
 export interface JobStatus {
   processed_lines: number;
@@ -98,4 +99,36 @@ export interface QueueState{
   };
   priorityJobs: any[];
   recentJobs: any[];
+}
+
+export interface ConsoleMessage {
+  id: number;
+  timestamp: string;
+  message: string;
+  type: 'error' | 'warning' | 'success' | 'info';
+}
+
+export interface ConsoleComponentProps {
+  socketConnection: Socket | null;
+}
+
+export interface FileUploadComponentProps {
+  onFileChange: (file: File | null) => void;
+  onUpload: () => void;
+  isUploading: boolean;
+  acceptedFileTypes?: string[];
+  currentFile: File | null; // Add this prop
+}
+
+export interface RecentJobsProps {
+  jobs: JobStatus[];
+  onSelectJob: (jobId: string) => void;
+  selectedJobId: string | null;
+}
+
+export interface StatsPanelProps {
+  stats: Stats;
+  selectedJobId: string | null;
+  isLoading: boolean;
+  onRefresh: () => void;
 }

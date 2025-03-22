@@ -1,12 +1,7 @@
 import React from 'react';
-import { Stats } from '@/interfaces/interface';
+import { Stats, StatsPanelProps } from '@/interfaces/interface';
 
-interface StatsPanelProps {
-  stats: Stats;
-  selectedJobId: string | null;
-  isLoading: boolean;
-  onRefresh: () => void;
-}
+
 
 const StatsPanel: React.FC<StatsPanelProps> = ({ 
   stats, 

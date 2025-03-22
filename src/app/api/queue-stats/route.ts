@@ -3,8 +3,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClientForServer } from "@/utils/supabase/server";
 import { Queue } from 'bullmq';
 import { getQueueConnection } from '@/utils/redis/redis';
+import { rateLimitMiddleware } from '@/utils/middleware/rateLimitterMiddleware';
 
-export async function GET(req: NextRequest) {
+async function handler(req: NextRequest) {
   try {
     // Create authenticated Supabase client
     const supabase = await createClientForServer();
@@ -86,3 +87,5 @@ export async function GET(req: NextRequest) {
     );
   }
 }
+
+export const GET = rateLimitMiddleware(handler);

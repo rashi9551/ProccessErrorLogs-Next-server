@@ -1,13 +1,8 @@
 import React, { useState, ChangeEvent, DragEvent, useRef } from "react";
 import { Upload, X } from "lucide-react";
+import { FileUploadComponentProps } from "@/interfaces/interface";
 
-interface FileUploadComponentProps {
-  onFileChange: (file: File | null) => void;
-  onUpload: () => void;
-  isUploading: boolean;
-  acceptedFileTypes?: string[];
-  currentFile: File | null; // Add this prop
-}
+
 
 const FileUploadComponent: React.FC<FileUploadComponentProps> = ({
   onFileChange,

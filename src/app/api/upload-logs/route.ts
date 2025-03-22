@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { Buffer } from "buffer";
 import { createClientForServer } from "@/utils/supabase/server";
 import { getLogProcessingQueue, calculatePriority } from "@/lib/queue";
+import { rateLimitMiddleware } from "@/utils/middleware/rateLimitterMiddleware";
 
-export async function POST(req: NextRequest) {
+export default async function handler(req: NextRequest,res?:NextResponse) {
   try {
     // Use the existing queue instance with all configurations
     const logProcessingQueue = getLogProcessingQueue();
@@ -90,3 +91,5 @@ export async function POST(req: NextRequest) {
     );
   }
 }
+
+export const POST = rateLimitMiddleware(handler);

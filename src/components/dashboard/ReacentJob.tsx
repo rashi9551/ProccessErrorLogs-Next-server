@@ -1,13 +1,9 @@
 import React, { useState } from 'react';
 import { format } from 'date-fns';
-import { JobStatus } from '@/interfaces/interface';
+import { JobStatus, RecentJobsProps } from '@/interfaces/interface';
 
 
-interface RecentJobsProps {
-  jobs: JobStatus[];
-  onSelectJob: (jobId: string) => void;
-  selectedJobId: string | null;
-}
+
 
 const RecentJobs: React.FC<RecentJobsProps> = ({ jobs, onSelectJob, selectedJobId }) => {
   const [currentPage, setCurrentPage] = useState<number>(1);

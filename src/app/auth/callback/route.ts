@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server'
 // The client you created from the Server-Side Auth instructions
 import { createClientForServer } from '@/utils/supabase/server'
+import { rateLimitMiddleware } from '@/utils/middleware/rateLimitterMiddleware'
 
-export async function GET(request:any) {
+async function handler(request:any) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get('code')
   // if "next" is in param, use it as the redirect URL
@@ -28,3 +29,4 @@ export async function GET(request:any) {
   // return the user to an error page with instructions
   return NextResponse.redirect(`${origin}/auth/auth-code-error`)
 }
+export const GET = rateLimitMiddleware(handler);

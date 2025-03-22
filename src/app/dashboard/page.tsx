@@ -236,6 +236,11 @@ export default function Dashboard() {
           Authorization: `Bearer ${token}`,
         },
       });
+            
+      if (response.status === 429) {
+        toast.error("Too many requests. Please try again later.");
+        return;
+      }
   
       if (!response.ok) {
         throw new Error("Upload failed");
@@ -248,7 +253,6 @@ export default function Dashboard() {
       }
       
       toast.success(`File uploaded. Job ID: ${jobId}`);
-      
       
       // Refresh dashboard data after upload
       setTimeout(() => {
@@ -318,7 +322,7 @@ export default function Dashboard() {
               currentFile={file} // Pass the file state to the component
             />
 
-            
+
             {selectedJobId ? (
               // Job Details View
               <JobDetailsTable
