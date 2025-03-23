@@ -14,3 +14,10 @@ export const initialValueQueueStats={
     priorityJobs: [],
     recentJobs: []
   }
+
+  export const dashboardStats={ 
+    errors: { total: 0, details: [] }, 
+    ips: { unique: 0, top: [] }, 
+    keywords: { total: 0, matches: [] }, 
+    levels:{total:0,details:[]}
+  }

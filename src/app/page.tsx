@@ -14,16 +14,16 @@ export default function Home() {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      setFadeOut(true); // Start fade-out animation
+      setFadeOut(true); 
       setTimeout(() => {
         if (isLoggedIn) {
-          router.replace("/dashboard"); // Redirect to dashboard
+          router.replace("/dashboard"); 
         } else {
-          router.replace("/login"); // Redirect to login
+          router.replace("/login");
         }
         setLoading(false);
-      }, 500); // Allow fade-out animation to complete
-    }, 1500); // 1.5-second delay before fading out
+      }, 500);
+    }, 1500); 
 
     return () => clearTimeout(timer); // Cleanup timeout on unmount
   }, [isLoggedIn, router]);

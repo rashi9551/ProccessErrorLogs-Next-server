@@ -1,11 +1,10 @@
 'use client';
 
-import { useEffect, useLayoutEffect, useState } from 'react';
+import { useLayoutEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { signinWithEmailPassword, signinWithGithub } from '@/action';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { RootState } from '@/utils/redux/store';
-import { userLogin } from '@/utils/redux/slices/authSlice';
 import {toast} from 'sonner' ;
 
 export default function Login() {
@@ -45,15 +44,6 @@ export default function Login() {
         router.refresh();
     }
   };
-
-//   const handleGithubLogin = async()=>{
-//     const data = await signinWithGithub()
-//     if(data.success){
-//         dispatch(userLogin({ email:data?.email as string ?? "", loggedIn: true }));
-//         toast.success('Login Successfull')
-//         router.push('/dashboard')
-//     }
-//   }
 
   return (
     <div className="flex min-h-screen bg-gradient-to-r from-blue-50 to-blue-100 justify-center items-center p-6">

@@ -23,13 +23,6 @@ const signInWith = (provider:Provider) => async (): Promise<{ success: string | 
 
   if (data?.url) {
     redirect(data?.url)
-    // const { data: user, error: userError } = await supabase.auth.getUser();
-    // if(user.user?.email){
-    //   return { success: true,email:user?.user?.email ,error: { message: "successfully logged in" } };
-    // }else{
-    //   console.log(userError);
-    // }
-    // return { success: true, error: { message: "successfully logged in" } };
   } else {
     return { success: null, error: { message: "No redirect URL found" } };
   }}

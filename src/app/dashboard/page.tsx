@@ -17,7 +17,7 @@ import FileUploadComponent from "@/components/dashboard/FileUpload";
 import QueueDetailsComponent from "@/components/dashboard/QueueDetails";
 import { io, Socket } from 'socket.io-client';
 import ConsoleComponent from "@/components/dashboard/Console";
-import { initialValueQueueStats } from "@/utils/constant";
+import { dashboardStats, initialValueQueueStats } from "@/utils/constant";
 import { shallowEqual } from 'react-redux';
 
 export default function Dashboard() {
@@ -27,12 +27,7 @@ export default function Dashboard() {
   const isLoggedIn = useSelector((state: RootState) => state.auth.loggedIn, shallowEqual);
   const userEmail = useSelector((state: RootState) => state.auth.email, shallowEqual);
   // State for the dashboard
-  const [stats, setStats] = useState<Stats>({ 
-    errors: { total: 0, details: [] }, 
-    ips: { unique: 0, top: [] }, 
-    keywords: { total: 0, matches: [] }, 
-    levels:{total:0,details:[]}
-  });
+  const [stats, setStats] = useState<Stats>(dashboardStats);
   const [queueStats, setQueueStats] = useState<QueueState>(initialValueQueueStats);
 
   const [isLoadingQueue, setIsLoadingQueue] = useState<boolean>(false);
@@ -51,12 +46,12 @@ export default function Dashboard() {
   useEffect(() => {
     // Establish WebSocket connection using socket.io-client
     const socket = io('http://localhost:3001', {
-      transports: ['websocket'], // Force WebSocket transport
+      transports: ['websocket'], 
     });
 
     socket.on('connect', () => {
       console.log('WebSocket connection established');
-      setSocketConnection(socket); // Store the socket connection
+      setSocketConnection(socket); 
     });
 
     socket.on('disconnect', () => {
@@ -98,7 +93,7 @@ export default function Dashboard() {
     } else {
       fetchDashboardData();
       fetchStats();
-      fetchQueueStats(); // Add this line
+      fetchQueueStats(); 
       setIsLoading(false);
     }
   }, [dispatch, router, isLoggedIn,selectedJobId]);
@@ -107,12 +102,6 @@ export default function Dashboard() {
 
   const fetchDashboardData = async () => {
     try {
-      // Fetch queue status
-      const { data: queueData, error: queueError } = await supabase
-        .from('job_status')
-        .select('status, count')
-        .select('status, count(*)')
-
       // Fetch recent jobs
       const { data: jobs, error: jobsError } = await supabase
         .from('job_status')
@@ -124,11 +113,7 @@ export default function Dashboard() {
         console.error('Error fetching jobs:', jobsError);
         return;
       }
-      
       setRecentJobs(jobs);
-      
-      // Fetch stats initially
-      await fetchStats();
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
       toast.error('Failed to load dashboard data');
@@ -190,12 +175,7 @@ export default function Dashboard() {
     } catch (error:any) {
       console.error('Error fetching queue statistics:', error);
       toast.error(error.message || 'Failed to load queue statistics');
-      // Set default/fallback queue stats
-      setQueueStats({
-        counts: { waiting: 0, active: 0, completed: 0, failed: 0, delayed: 0 },
-        priorityJobs: [],
-        recentJobs: []
-      });
+      setQueueStats(initialValueQueueStats);
     } finally {
       setIsLoadingQueue(false);
     }
@@ -259,7 +239,7 @@ export default function Dashboard() {
         fetchDashboardData();
         fetchStats();
         fetchQueueStats();
-      }, 5000);
+      }, 7000);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       toast.error(errorMessage);
