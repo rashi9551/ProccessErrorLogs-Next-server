@@ -4,11 +4,19 @@ import { createClientForServer } from "@/utils/supabase/server";
 import { Queue } from 'bullmq';
 import { getQueueConnection } from '@/utils/redis/redis';
 import { rateLimitMiddleware } from '@/utils/middleware/rateLimitterMiddleware';
+import { authMiddleware } from '@/utils/middleware/authMiddleware';
 
 async function handler(req: NextRequest) {
   try {
     // Create authenticated Supabase client
     const supabase = await createClientForServer();
+    
+    const authResult = await authMiddleware(req);
+      
+    // If authResult is not NextResponse.next(), it means authentication failed
+    if (!(authResult instanceof NextResponse) || authResult.status !== 200) {
+      return authResult;
+    } 
     
     // Verify user is authenticated
     const { data: { user }, error: authError } = await supabase.auth.getUser();

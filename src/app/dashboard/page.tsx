@@ -102,17 +102,26 @@ export default function Dashboard() {
 
   const fetchDashboardData = async () => {
     try {
-      // Fetch recent jobs
-      const { data: jobs, error: jobsError } = await supabase
-        .from('job_status')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(10);
-
-      if (jobsError) {
-        console.error('Error fetching jobs:', jobsError);
-        return;
+      // First get the current session
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        throw new Error("No active session");
       }
+  
+      // Make request with token in Authorization header
+      const response = await fetch('/api/dashboard', {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        }
+      });
+  
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+  
+      const jobs = await response.json();
       setRecentJobs(jobs);
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
@@ -149,7 +158,6 @@ export default function Dashboard() {
       }
   
       const data = await response.json();
-      // console.log(data,"delected jobid ",selectedJobId);
       
       setStats(data);
     } catch (error) {
@@ -163,8 +171,21 @@ export default function Dashboard() {
   const fetchQueueStats = async () => {
     setIsLoadingQueue(true);
     try {
-      const response = await fetch('/api/queue-stats');
-      
+      const { data: { session } } = await supabase.auth.getSession();
+  
+      if (!session) {
+        throw new Error("No active session");
+      }
+    
+      // 3. Make the authenticated request
+      const response = await fetch('/api/queue-stats', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || 'Failed to fetch queue statistics');

@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClientForServer } from "@/utils/supabase/server";
 import { ALL_LOG_LEVELS } from '@/utils/constant';
 import { rateLimitMiddleware } from '@/utils/middleware/rateLimitterMiddleware';
+import { authMiddleware } from '@/utils/middleware/authMiddleware';
 
 
 async function handler(req: NextRequest) {
@@ -10,6 +11,12 @@ async function handler(req: NextRequest) {
     // Get the job_id from query params if provided
     const url = new URL(req.url);
     const jobId = url.searchParams.get('jobId');
+    const authResult = await authMiddleware(req);
+      
+    // If authResult is not NextResponse.next(), it means authentication failed
+    if (!(authResult instanceof NextResponse) || authResult.status !== 200) {
+      return authResult;
+    } 
     
     // Create authenticated Supabase client
     const supabase = await createClientForServer();

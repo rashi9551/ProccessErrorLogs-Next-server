@@ -3,6 +3,7 @@ import { Buffer } from "buffer";
 import { createClientForServer } from "@/utils/supabase/server";
 import { getLogProcessingQueue, calculatePriority } from "@/lib/queue";
 import { rateLimitMiddleware } from "@/utils/middleware/rateLimitterMiddleware";
+import { authMiddleware } from "@/utils/middleware/authMiddleware";
 
 export default async function handler(req: NextRequest,res?:NextResponse) {
   try {
@@ -10,13 +11,22 @@ export default async function handler(req: NextRequest,res?:NextResponse) {
     const logProcessingQueue = getLogProcessingQueue();
     const supabase = await createClientForServer();
     
-    // Authentication check
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const authResult = await authMiddleware(req);
+  
+    // If authResult is not NextResponse.next(), it means authentication failed
+    if (!(authResult instanceof NextResponse) || authResult.status !== 200) {
+      return authResult;
+    } 
 
-    // Parse FormData
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+      
+    if (authError || !user) {
+      return NextResponse.json(
+        { error: "Unauthorized" }, 
+        { status: 401 }
+      );
+    }
+  
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
 
