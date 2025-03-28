@@ -17,15 +17,6 @@ async function handler(req: NextRequest) {
     if (!(authResult instanceof NextResponse) || authResult.status !== 200) {
       return authResult;
     } 
-    
-    // Verify user is authenticated
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) {
-      return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
-      );
-    }
 
     // Connect to the queue
     const connection = getQueueConnection();

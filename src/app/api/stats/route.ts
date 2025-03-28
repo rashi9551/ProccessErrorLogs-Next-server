@@ -1,7 +1,7 @@
 // app/api/stats/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { createClientForServer } from "@/utils/supabase/server";
-import { ALL_LOG_LEVELS } from '@/utils/constant';
+import { ALL_LOG_LEVELS, dashboardStats } from '@/utils/constant';
 import { rateLimitMiddleware } from '@/utils/middleware/rateLimitterMiddleware';
 import { authMiddleware } from '@/utils/middleware/authMiddleware';
 
@@ -126,12 +126,7 @@ export const GET = rateLimitMiddleware(handler);
 // Helper function to process a single job's stats
 function processJobStats(jobStats: any) {
   if (!jobStats) {
-    return {
-      errors: { total: 0, details: [] },
-      ips: { unique: 0, top: [] },
-      keywords: { total: 0, matches: [] },
-      levels: { total: 0, details: ALL_LOG_LEVELS.map(level => ({ type: level, count: 0 })) }
-    };
+    return dashboardStats
   }
 
   // Process error levels
@@ -220,12 +215,7 @@ function processJobStats(jobStats: any) {
 // Helper function to process aggregated stats
 function processAggregatedStats(logStats: any[]) {
   if (!logStats || logStats.length === 0) {
-    return {
-      errors: { total: 0, details: [] },
-      ips: { unique: 0, top: [] },
-      keywords: { total: 0, matches: [] },
-      levels: { total: 0, details: [] }
-    };
+    return dashboardStats
   }
 
   // Aggregate error levels

@@ -203,9 +203,7 @@ export default function Dashboard() {
   };
 
   const handleFileChange = (selectedFile: File | null) => {
-    setFile(selectedFile);
-    console.log(file);
-    
+    setFile(selectedFile);    
   };
 
   const handleUpload = async () => {
@@ -254,7 +252,7 @@ export default function Dashboard() {
       }
       
       toast.success(`File uploaded. Job ID: ${jobId}`);
-      
+
       // Refresh dashboard data after upload
       setTimeout(() => {
         fetchDashboardData();
