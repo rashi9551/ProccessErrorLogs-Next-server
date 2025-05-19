@@ -88,3 +88,4 @@ async function handler(req: NextRequest) {
 }
 
 export const GET = rateLimitMiddleware(handler);
+// export const GET = handler

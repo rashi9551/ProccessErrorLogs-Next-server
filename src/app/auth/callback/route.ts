@@ -30,3 +30,4 @@ async function handler(request:any) {
   return NextResponse.redirect(`${origin}/auth/auth-code-error`)
 }
 export const GET = rateLimitMiddleware(handler);
+// export const GET = handler

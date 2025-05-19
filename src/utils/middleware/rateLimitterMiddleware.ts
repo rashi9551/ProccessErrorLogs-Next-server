@@ -6,7 +6,7 @@ import { Redis } from "@upstash/redis";
 // Create a new ratelimiter instance
 const ratelimit = new Ratelimit({
   redis: Redis.fromEnv(),
-  limiter: Ratelimit.slidingWindow(100, "15 m"), // 100 requests per 15 minutes
+  limiter: Ratelimit.slidingWindow(100, "15 m"), // 100 ārequests per 15 minutes
 });
 
 // Wrapper function to apply rate limiting

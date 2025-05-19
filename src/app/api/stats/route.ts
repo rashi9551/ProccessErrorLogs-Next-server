@@ -122,6 +122,7 @@ async function handler(req: NextRequest) {
 
 export const GET = rateLimitMiddleware(handler);
 
+// export const GET = handler
 
 // Helper function to process a single job's stats
 function processJobStats(jobStats: any) {

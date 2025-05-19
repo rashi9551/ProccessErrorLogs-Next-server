@@ -84,6 +84,7 @@ export default function Dashboard() {
       } else {
         console.log(error);
         toast.error('Session expired, please login again');
+        console.log("its coming as session expired")
         router.replace('/login');
       }
     };

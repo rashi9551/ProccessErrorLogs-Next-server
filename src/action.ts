@@ -17,7 +17,7 @@ const signInWith = (provider:Provider) => async (): Promise<{ success: string | 
   })
 
   if (error) {
-    console.log(error)
+    // console.log(error)
     return { success: null, error: { message: 'OAuth sign-in failed' } };
   }
 
